@@ -12,14 +12,14 @@ if uploaded_file:
     xls = pd.ExcelFile(uploaded_file)
 
     if "Bancos" in xls.sheet_names and "Mayor" in xls.sheet_names:
-        # 🔹 Leer hojas sin cabecera y asignar nombres exactos de tu plantilla
+        # Leer hojas sin cabecera y asignar nombres exactos de tu plantilla
         df_bancos = pd.read_excel(xls, sheet_name="Bancos", header=None)
         df_bancos.columns = ['Bancos', 'Valor', 'Col3','Col4','Col5','Col6','Col7','Col8']  # ajusta según tu plantilla
 
         df_mayor = pd.read_excel(xls, sheet_name="Mayor", header=None)
         df_mayor.columns = ['Debe', 'Haber', 'Col3','Col4','Col5','Col6','Col7','Col8','Col9','Col10','Col11','Col12']  # ajusta según tu plantilla
 
-        # 🔹 Crear resumen de valores que no coinciden
+        # Crear resumen de valores que no coinciden
         resumen = []
         for index, row in df_bancos.iterrows():
             tipo = str(row['Bancos']).strip().upper()
@@ -32,17 +32,16 @@ if uploaded_file:
                 if df_mayor[df_mayor['Haber'] == valor].empty:
                     resumen.append({'Fila': index+2, 'Tipo': 'Haber', 'Valor': valor})
 
-        # 🔹 Guardar Excel con hojas originales y resumen
+        # Guardar Excel con hojas originales y resumen
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df_bancos.to_excel(writer, index=False, sheet_name='Bancos')
             df_mayor.to_excel(writer, index=False, sheet_name='Mayor')
             df_resumen = pd.DataFrame(resumen)
             df_resumen.to_excel(writer, index=False, sheet_name='Resumen')
-            writer.save()
         output.seek(0)
 
-        # 🔹 Sombrear valores del resumen
+        # Sombrear valores del resumen
         wb = load_workbook(output)
         if 'Resumen' in wb.sheetnames:
             ws_resumen = wb['Resumen']
@@ -63,6 +62,7 @@ if uploaded_file:
 
     else:
         st.error("El archivo debe contener las hojas 'Bancos' y 'Mayor'.")
+
 
 
 
