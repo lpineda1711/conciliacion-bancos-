@@ -4,7 +4,6 @@ from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 from io import BytesIO
 
-# Título
 st.title("Conciliación Bancaria")
 
 # Subir archivo Excel
@@ -19,25 +18,25 @@ if uploaded_file:
         df_bancos = pd.read_excel(xls, sheet_name="Bancos")
         df_mayor = pd.read_excel(xls, sheet_name="Mayor")
         
-        # Normalizar nombres de columnas: eliminar espacios y uniformizar mayúsculas
-        df_bancos.columns = df_bancos.columns.str.strip().str.capitalize()
-        df_mayor.columns = df_mayor.columns.str.strip().str.capitalize()
+        # 🔹 Normalizar columnas: minúsculas y sin espacios
+        df_bancos.columns = df_bancos.columns.str.lower().str.replace(' ', '')
+        df_mayor.columns = df_mayor.columns.str.lower().str.replace(' ', '')
         
-        # Crear lista para el resumen
+        # 🔹 Crear lista para el resumen
         resumen = []
         
         for index, row in df_bancos.iterrows():
-            tipo = str(row['Tipo']).strip().upper()
-            valor = row['Valor']
+            tipo = str(row['tipo']).strip().upper()   # 'tipo' en minúscula
+            valor = row['valor']                      # 'valor' en minúscula
             
             if tipo == 'C':  # Debe
-                if df_mayor[df_mayor['Debe'] == valor].empty:
+                if df_mayor[df_mayor['debe'] == valor].empty:
                     resumen.append({'Fila': index+2, 'Tipo': 'Debe', 'Valor': valor})
             elif tipo == 'D':  # Haber
-                if df_mayor[df_mayor['Haber'] == valor].empty:
+                if df_mayor[df_mayor['haber'] == valor].empty:
                     resumen.append({'Fila': index+2, 'Tipo': 'Haber', 'Valor': valor})
         
-        # Guardar hojas originales en un Excel temporal
+        # 🔹 Guardar hojas originales y resumen en Excel temporal
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df_bancos.to_excel(writer, index=False, sheet_name='Bancos')
@@ -47,7 +46,7 @@ if uploaded_file:
             writer.save()
         output.seek(0)
         
-        # Abrir con openpyxl para sombrear los valores
+        # 🔹 Abrir con openpyxl para sombrear valores del resumen
         wb = load_workbook(output)
         if 'Resumen' in wb.sheetnames:
             ws_resumen = wb['Resumen']
@@ -56,12 +55,12 @@ if uploaded_file:
             for row in range(2, ws_resumen.max_row + 1):
                 ws_resumen[f'C{row}'].fill = yellow_fill  # Columna Valor
         
-        # Guardar cambios finales
+        # 🔹 Guardar cambios finales
         final_output = BytesIO()
         wb.save(final_output)
         final_output.seek(0)
         
-        # Botón de descarga
+        # 🔹 Botón de descarga
         st.download_button(
             label="Descargar Excel Conciliado",
             data=final_output,
@@ -70,4 +69,5 @@ if uploaded_file:
         )
     else:
         st.error("El archivo debe contener las hojas 'Bancos' y 'Mayor'.")
+
 
